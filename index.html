@@ -2,429 +2,784 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pass Card Story Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>PassCard — Story Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital@1&display=swap');
-
     :root {
-      --gold: #f5c842;
-      --gold-dim: rgba(245,200,66,0.15);
-      --gold-border: rgba(245,200,66,0.25);
-      --surface: #0e0e14;
-      --surface-2: #13131c;
-      --surface-3: #1a1a27;
-      --text: #e8e8f0;
-      --text-muted: rgba(232,232,240,0.45);
-      --border: rgba(255,255,255,0.07);
+      --gold:        #c9963b;
+      --gold-light:  #e8c078;
+      --gold-pale:   rgba(201,150,59,0.12);
+      --gold-border: rgba(201,150,59,0.28);
+      --ink:         #080810;
+      --s1:          #0e0e18;
+      --s2:          #131320;
+      --s3:          #1b1b2e;
+      --s4:          #242438;
+      --text:        #ece9e2;
+      --text-2:      rgba(236,233,226,0.55);
+      --text-3:      rgba(236,233,226,0.28);
+      --line:        rgba(255,255,255,0.07);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--surface); font-family: 'DM Sans', sans-serif; color: var(--text); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .page-wrap {
-      min-height: 100vh;
-      background:
-        radial-gradient(ellipse 60% 40% at 10% 10%, rgba(245,200,66,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 90% 80%, rgba(100,80,200,0.04) 0%, transparent 60%),
-        #0a0a0f;
-    }
+    html { scroll-behavior: smooth; }
 
-    .header {
-      border-bottom: 1px solid var(--border);
-      background: rgba(14,14,20,0.8);
-      backdrop-filter: blur(20px);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .header-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo-group { display: flex; align-items: center; gap: 12px; }
-
-    .logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--gold), #e8a020);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      color: #0a0a0f;
-    }
-
-    .logo-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-
-    .logo-text {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.5rem;
-      letter-spacing: 0.08em;
+    body {
+      background: var(--ink);
       color: var(--text);
-      line-height: 1;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    .logo-sub {
-      font-size: 0.65rem;
-      letter-spacing: 0.18em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-top: 2px;
+    /* Subtle noise grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      background-size: 200px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
     }
 
-    .badge-uk {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--gold-dim);
+    /* Ambient glow blobs */
+    .glow-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-blob-1 { width: 500px; height: 500px; background: rgba(201,150,59,0.07); top: -100px; left: -150px; }
+    .glow-blob-2 { width: 400px; height: 400px; background: rgba(80,60,160,0.05); bottom: 10%; right: -100px; }
+
+    /* ─── HEADER ─── */
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8,8,16,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .header-inner {
+      max-width: 1340px; margin: 0 auto;
+      padding: 0 2rem; height: 68px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .logo-mark {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(145deg, var(--gold-light), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 20px; height: 20px; fill: none; stroke: #0a0a0f; stroke-width: 1.8; }
+    .logo-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.55rem; font-weight: 600; letter-spacing: 0.02em;
+      color: var(--text); line-height: 1;
+    }
+    .logo-name span { color: var(--gold-light); }
+    .logo-tagline {
+      font-size: 0.62rem; letter-spacing: 0.18em;
+      color: var(--text-3); text-transform: uppercase; margin-top: 3px;
+    }
+    .header-badge {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 14px; border-radius: 999px;
       border: 1px solid var(--gold-border);
-      border-radius: 999px;
-      padding: 5px 14px;
-      font-size: 0.72rem;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      color: var(--gold);
+      background: var(--gold-pale);
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.07em;
+      color: var(--gold-light);
     }
+    .header-badge::before { content: '★'; font-size: 0.65rem; }
 
-    .badge-uk svg { width: 16px; height: 16px; fill: currentColor; }
-
+    /* ─── LAYOUT ─── */
     .main {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2.5rem 2rem 4rem;
+      position: relative; z-index: 1;
+      max-width: 1340px; margin: 0 auto;
+      padding: 3rem 2rem 5rem;
       display: grid;
-      grid-template-columns: 420px 1fr;
-      gap: 2.5rem;
+      grid-template-columns: 400px 1fr;
+      gap: 2rem;
       align-items: start;
     }
-
-    @media (max-width: 900px) {
-      .main { grid-template-columns: 1fr; padding: 1.5rem 1rem 3rem; }
+    @media (max-width: 960px) {
+      .main { grid-template-columns: 1fr; padding: 1.5rem 1rem 4rem; }
+      .preview-sticky { position: static !important; }
     }
 
-    .panel { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
-    .panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-    .panel-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
-    .panel-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold); }
-    .panel-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+    /* ─── PANELS ─── */
+    .panel {
+      background: var(--s2);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .panel + .panel { margin-top: 1.25rem; }
+    .panel-head {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .panel-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+      flex-shrink: 0;
+    }
+    .panel-title {
+      font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .panel-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; }
 
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-    .field-label svg { color: var(--gold); width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
-    
+    /* ─── FIELDS ─── */
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field-label {
+      font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-3);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .field-label svg {
+      width: 14px; height: 14px;
+      fill: none; stroke: var(--gold); stroke-width: 2;
+      flex-shrink: 0;
+    }
     .field-input {
-      background: var(--surface-3); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;
-      color: var(--text); font-size: 0.95rem; font-family: 'DM Sans', sans-serif; outline: none; width: 100%; transition: all 0.2s;
+      background: var(--s3);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.92rem;
+      outline: none; width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
     }
-    .field-input:focus { border-color: rgba(245,200,66,0.5); box-shadow: 0 0 0 3px rgba(245,200,66,0.08); }
-
+    .field-input:focus {
+      border-color: rgba(201,150,59,0.5);
+      box-shadow: 0 0 0 3px rgba(201,150,59,0.09);
+    }
+    .field-input option { background: var(--s3); }
     .select-wrap { position: relative; }
-    .select-wrap svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted); width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
-    .select-wrap select { cursor: pointer; padding-right: 40px; appearance: none; }
-
-    .upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 2rem 1.5rem; text-align: center; cursor: pointer; transition: all 0.25s; background: var(--surface-3); position: relative; }
-    .upload-zone:hover { border-color: rgba(245,200,66,0.45); background: rgba(245,200,66,0.04); }
-    .upload-icon-wrap { width: 52px; height: 52px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 12px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--gold); }
-    .upload-icon-wrap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
-    .upload-title { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-    .upload-sub { font-size: 0.75rem; color: var(--text-muted); }
-    .upload-success { display: none; align-items: center; justify-content: center; gap: 8px; color: #4ade80; font-size: 0.85rem; font-weight: 500; margin-top: 8px; }
-    .upload-success svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; }
-
-    .btn-download {
-      width: 100%; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, #f5c842, #e8a020); color: #0a0a0f;
-      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.25s;
+    .select-wrap::after {
+      content: '';
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--text-3);
+      pointer-events: none;
     }
-    .btn-download svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
-    .btn-download:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(245,200,66,0.35); }
-    .btn-success { background: linear-gradient(135deg, #4ade80, #22c55e) !important; color: white !important; }
+    .select-wrap select { cursor: pointer; padding-right: 40px; appearance: none; -webkit-appearance: none; }
 
-    .preview-panel { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; position: sticky; top: 90px; }
-    .preview-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .preview-header svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; color: var(--text-muted); }
+    /* ─── UPLOAD ZONE (fixed for mobile + desktop) ─── */
+    .upload-zone {
+      border: 1.5px dashed var(--gold-border);
+      border-radius: 16px;
+      padding: 0;
+      text-align: center;
+      background: var(--s3);
+      transition: border-color 0.25s, background 0.25s;
+      overflow: hidden;
+      position: relative;
+    }
+    .upload-zone.drag-over {
+      border-color: var(--gold);
+      background: var(--gold-pale);
+    }
+
+    /* The actual clickable/tappable trigger covers entire zone */
+    .upload-trigger {
+      display: block;
+      width: 100%;
+      padding: 2rem 1.5rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Hidden native file input, absolutely positioned to cover the zone for iOS tap */
+    .upload-file-input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+      font-size: 16px; /* prevent iOS zoom */
+    }
+
+    .upload-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      border: 1px solid var(--gold-border);
+      background: var(--gold-pale);
+      color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+      transition: background 0.2s;
+    }
+    .upload-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .upload-heading { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .upload-sub { font-size: 0.72rem; color: var(--text-3); line-height: 1.5; }
+
+    .upload-thumb {
+      display: none;
+      width: 100%; height: 140px;
+      object-fit: cover;
+    }
+    .upload-thumb.visible { display: block; }
+    .upload-change {
+      display: none;
+      align-items: center; justify-content: center; gap: 8px;
+      font-size: 0.75rem; font-weight: 500;
+      color: var(--gold-light);
+      padding: 10px;
+      border-top: 1px solid var(--gold-border);
+      background: var(--gold-pale);
+    }
+    .upload-change.visible { display: flex; }
+    .upload-change svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+    /* Separator */
+    .sep { height: 1px; background: linear-gradient(90deg, transparent, var(--line) 40%, var(--line) 60%, transparent); }
+
+    /* ─── GENERATE BUTTON ─── */
+    .btn-gen {
+      width: 100%;
+      padding: 17px 20px;
+      border-radius: 14px;
+      border: none; cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem; font-weight: 600;
+      letter-spacing: 0.05em;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all 0.25s;
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 60%, #a8701e 100%);
+      color: #080808;
+    }
+    .btn-gen::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 60%);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .btn-gen:hover::before { opacity: 1; }
+    .btn-gen:hover { box-shadow: 0 14px 48px rgba(201,150,59,0.4); transform: translateY(-1px); }
+    .btn-gen:active { transform: translateY(0); }
+    .btn-gen svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+    .btn-gen.loading { opacity: 0.7; pointer-events: none; }
+    .btn-gen.success { background: linear-gradient(135deg, #5eda8a, #22c55e) !important; color: white !important; }
+
+    /* Specs strip */
+    .specs-strip {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line);
+    }
+    .spec {
+      padding: 1rem; text-align: center;
+      border-right: 1px solid var(--line);
+    }
+    .spec:last-child { border-right: none; }
+    .spec-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.55rem; font-weight: 700;
+      color: var(--gold-light); line-height: 1;
+      letter-spacing: 0.02em;
+    }
+    .spec-label {
+      font-size: 0.6rem; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--text-3); margin-top: 3px;
+    }
+
+    /* ─── PREVIEW PANEL ─── */
+    .preview-sticky { position: sticky; top: 88px; }
+    .preview-panel { background: var(--s2); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; }
+    .preview-head {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .preview-head-left { display: flex; align-items: center; gap: 10px; }
+    .live-pill {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.68rem; font-weight: 500;
+      color: var(--text-2); letter-spacing: 0.06em;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
     .preview-body { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
 
-    .story-frame {
-      width: 100%; max-width: 340px; aspect-ratio: 9/16; border-radius: 20px; overflow: hidden; border: 1px solid var(--border);
-      position: relative; background: #0a0a0f; box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(245,200,66,0.06);
+    .phone-frame {
+      width: 100%; max-width: 300px;
+      background: #050508;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
     }
-    .story-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .phone-notch {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 22px;
+      background: #050508;
+      border-radius: 0 0 14px 14px;
+      z-index: 5;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top: none;
+    }
+    .story-img {
+      width: 100%; aspect-ratio: 9/16;
+      object-fit: cover; display: block;
+    }
 
-    .preview-meta { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.06em; }
-    .meta-divider { width: 1px; height: 12px; background: var(--border); }
-    
-    .tip-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 10px; font-size: 0.78rem; color: rgba(245,200,66,0.85); line-height: 1.5; width: 100%; max-width: 340px; }
-    .tip-row svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; margin-top: 1px; }
+    .meta-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.68rem; color: var(--text-3); letter-spacing: 0.06em;
+    }
+    .meta-dot { width: 3px; height: 3px; background: var(--text-3); border-radius: 50%; }
 
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); overflow: hidden; border-radius: 0 0 20px 20px; }
-    .stat-cell { background: var(--surface-2); padding: 1rem; text-align: center; }
-    .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--gold); letter-spacing: 0.04em; line-height: 1; }
-    .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-top: 2px; }
-    .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0.25rem 0; }
+    .tip-card {
+      width: 100%; max-width: 300px;
+      padding: 12px 14px;
+      background: var(--gold-pale);
+      border: 1px solid var(--gold-border);
+      border-radius: 12px;
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.76rem; color: rgba(232,192,120,0.85);
+      line-height: 1.55;
+    }
+    .tip-card::before { content: '★'; flex-shrink: 0; margin-top: 1px; color: var(--gold); }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .panel, .preview-panel { animation: fadeSlide 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .panel:nth-child(2) { animation-delay: 0.08s; }
+    .panel:nth-child(3) { animation-delay: 0.16s; }
   </style>
 </head>
 <body>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
 
-  <canvas id="mainCanvas" width="1080" height="1920" style="display: none;"></canvas>
+  <canvas id="mainCanvas" width="1080" height="1920" style="display:none;"></canvas>
 
-  <div class="page-wrap">
-    <header class="header">
-      <div class="header-inner">
-        <div class="logo-group">
-          <div class="logo-icon">
-            <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1l3-3h8l3 3h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
-          </div>
-          <div>
-            <div class="logo-text">PASS CARD</div>
-            <div class="logo-sub">Story Generator</div>
-          </div>
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
         </div>
-        <div class="badge-uk">
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          UK Driving Schools
+        <div>
+          <div class="logo-name">Pass<span>Card</span></div>
+          <div class="logo-tagline">Story Generator</div>
         </div>
       </div>
-    </header>
+      <div class="header-badge">UK Driving Schools</div>
+    </div>
+  </header>
 
-    <main class="main">
-      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-        
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-dot"></div>
-            <span class="panel-title">Card Details</span>
+  <main class="main">
+    <!-- LEFT COLUMN -->
+    <div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-dot"></div>
+          <span class="panel-title">Card Details</span>
+        </div>
+        <div class="panel-body">
+
+          <div class="field">
+            <label class="field-label">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Student Name
+            </label>
+            <input class="field-input" type="text" id="studentName" value="Jamie" maxlength="24" autocomplete="off" spellcheck="false">
           </div>
-          <div class="panel-body">
-            
-            <div class="field">
-              <label class="field-label">
-                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                Student Name
-              </label>
-              <input class="field-input" type="text" id="studentName" value="Jamie" maxlength="30">
+
+          <div class="field">
+            <label class="field-label">
+              <svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3m-4.22-7.78-2.12 2.12M7.1 16.9l-2.12 2.12m12.02 0-2.12-2.12M7.1 7.1 4.98 4.98"/></svg>
+              Passing Message
+            </label>
+            <div class="select-wrap">
+              <select class="field-input" id="passingMessage">
+                <option value="Passed First Time!">Passed First Time!</option>
+                <option value="Zero Faults Pass!">Zero Faults Pass!</option>
+                <option value="Passed Today!">Passed Today!</option>
+                <option value="First Attempt Pass!">First Attempt Pass!</option>
+                <option value="Clean Sheet Pass!">Clean Sheet Pass!</option>
+              </select>
             </div>
+          </div>
 
-            <div class="field">
-              <label class="field-label">
-                <svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3m-4.22-7.78-2.12 2.12M7.1 16.9l-2.12 2.12m12.02 0-2.12-2.12M7.1 7.1 4.98 4.98"/></svg>
-                Passing Message
-              </label>
-              <div class="select-wrap">
-                <select class="field-input" id="passingMessage">
-                  <option value="Passed First Time!">Passed First Time!</option>
-                  <option value="Zero Faults Pass!">Zero Faults Pass!</option>
-                  <option value="Passed Today!">Passed Today!</option>
-                  <option value="First Attempt Pass!">First Attempt Pass!</option>
-                  <option value="Clean Sheet Pass!">Clean Sheet Pass!</option>
-                </select>
-                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-            </div>
+          <div class="field">
+            <label class="field-label">
+              <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              QR Code Link
+            </label>
+            <input class="field-input" type="url" id="targetLink" value="https://google.com" inputmode="url" autocomplete="url">
+          </div>
 
-            <div class="field">
-              <label class="field-label">
-                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                QR Code Link
-              </label>
-              <input class="field-input" type="url" id="targetLink" value="https://google.com">
-            </div>
+          <div class="sep"></div>
 
-            <div class="divider"></div>
+          <!-- UPLOAD — fixed for iOS/Android/Desktop -->
+          <div class="field">
+            <label class="field-label">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Student Photo
+            </label>
 
-            <div class="field">
-              <label class="field-label">
-                <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-                Student Photo
-              </label>
-              <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                <div class="upload-icon-wrap" id="uploadIcon">
+            <div class="upload-zone" id="uploadZone">
+              <!-- The input covers the whole zone on all devices -->
+              <input
+                type="file"
+                id="fileInput"
+                class="upload-file-input"
+                accept="image/*,image/jpeg,image/png,image/webp,image/heic,image/heif"
+                capture
+              >
+
+              <!-- Thumbnail shown after upload -->
+              <img id="uploadThumb" class="upload-thumb" alt="preview">
+
+              <!-- Default state shown before upload -->
+              <div class="upload-trigger" id="uploadDefault">
+                <div class="upload-icon">
                   <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
                 </div>
-                <div class="upload-title" id="uploadTitle">Click to upload photo</div>
-                <div class="upload-sub" id="uploadSub">JPG, PNG, WEBP — student with certificate</div>
-                <div class="upload-success" id="uploadSuccess">
-                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Looking great!
-                </div>
+                <div class="upload-heading">Tap to add photo</div>
+                <div class="upload-sub">Camera, gallery, or file — works on all devices</div>
+              </div>
+
+              <div class="upload-change" id="uploadChange">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Tap to change photo
               </div>
             </div>
-
           </div>
+
         </div>
-
-        <button class="btn-download" id="downloadBtn">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download Instagram Story
-        </button>
-
-        <div class="panel">
-          <div class="stats-row" style="border-radius: 20px; border: none;">
-            <div class="stat-cell"><div class="stat-val">1080</div><div class="stat-label">px Wide</div></div>
-            <div class="stat-cell"><div class="stat-val">1920</div><div class="stat-label">px Tall</div></div>
-            <div class="stat-cell"><div class="stat-val">9:16</div><div class="stat-label">Ratio</div></div>
-          </div>
-        </div>
-
       </div>
 
+      <button class="btn-gen" id="downloadBtn">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Story Image
+      </button>
+
+      <div class="panel" style="margin-top: 1.25rem; border-radius: 16px; overflow: hidden;">
+        <div class="specs-strip">
+          <div class="spec"><div class="spec-val">1080</div><div class="spec-label">px Wide</div></div>
+          <div class="spec"><div class="spec-val">1920</div><div class="spec-label">px Tall</div></div>
+          <div class="spec"><div class="spec-val">9:16</div><div class="spec-label">Ratio</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: PREVIEW -->
+    <div class="preview-sticky">
       <div class="preview-panel">
-        <div class="preview-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="preview-head">
+          <div class="preview-head-left">
             <div class="panel-dot"></div>
             <span class="panel-title">Live Preview</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            <span style="font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.06em;">Real-time</span>
-          </div>
+          <div class="live-pill"><div class="live-dot"></div>Real-time</div>
         </div>
-
         <div class="preview-body">
-          <div class="story-frame">
-            <img id="previewImg" class="story-img" alt="Live Generation View">
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <img id="previewImg" class="story-img" alt="Story Preview">
           </div>
-
-          <div class="preview-meta">
+          <div class="meta-row">
             <span>Instagram Story</span>
-            <div class="meta-divider"></div>
-            <span>1080 × 1920 PNG</span>
-            <div class="meta-divider"></div>
-            <span>High Res</span>
+            <div class="meta-dot"></div>
+            <span>1080 × 1920</span>
+            <div class="meta-dot"></div>
+            <span>PNG</span>
           </div>
-
-          <div class="tip-row">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span><strong>Pro Tip:</strong> Send this graphic straight to your student's WhatsApp right after they pass. They will instantly post it to their stories! 🚗</span>
+          <div class="tip-card">
+            <span>WhatsApp this straight to your student after they pass — they'll post it instantly and market your school for free.</span>
           </div>
         </div>
-
-        <div class="stats-row">
-          <div class="stat-cell"><div class="stat-val">∞</div><div class="stat-label">Downloads</div></div>
-          <div class="stat-cell"><div class="stat-val">£0</div><div class="stat-label">Cost</div></div>
-          <div class="stat-cell"><div class="stat-val">100%</div><div class="stat-label">Standalone</div></div>
+        <div class="specs-strip">
+          <div class="spec"><div class="spec-val">∞</div><div class="spec-label">Downloads</div></div>
+          <div class="spec"><div class="spec-val">£0</div><div class="spec-label">Cost</div></div>
+          <div class="spec"><div class="spec-val">100%</div><div class="spec-label">Private</div></div>
         </div>
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
 
   <script>
     const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d');
-    const previewImg = document.getElementById('previewImg');
-    
-    // Form Elements
-    const nameInput = document.getElementById('studentName');
-    const msgSelect = document.getElementById('passingMessage');
-    const linkInput = document.getElementById('targetLink');
-    const fileInput = document.getElementById('fileInput');
-    const downloadBtn = document.getElementById('downloadBtn');
+    const ctx    = canvas.getContext('2d');
+    const preview = document.getElementById('previewImg');
 
-    let uploadedPhotoUrl = null;
+    const nameEl  = document.getElementById('studentName');
+    const msgEl   = document.getElementById('passingMessage');
+    const linkEl  = document.getElementById('targetLink');
+    const fileEl  = document.getElementById('fileInput');
+    const dlBtn   = document.getElementById('downloadBtn');
+    const zone    = document.getElementById('uploadZone');
+    const thumb   = document.getElementById('uploadThumb');
+    const defView = document.getElementById('uploadDefault');
+    const chgView = document.getElementById('uploadChange');
 
-    // Helper functions
-    function loadImage(src) {
-      return new Promise((resolve, reject) => {
+    let photoUrl = null;
+    let renderTimer = null;
+
+    // ── Image loader util ──
+    function loadImg(src) {
+      return new Promise((res, rej) => {
         const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => resolve(img);
-        img.onerror = reject;
+        img.crossOrigin = 'anonymous';
+        img.onload  = () => res(img);
+        img.onerror = () => rej(new Error('img load fail'));
         img.src = src;
       });
     }
 
-    function roundRect(ctx, x, y, w, h, r) {
-      ctx.beginPath(); ctx.moveTo(x + r, y);
+    // ── Rounded rect helper ──
+    function rr(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
       ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
       ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
       ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
     }
 
-    // Engine Core Drawing Logic
-    async function updateCanvas() {
-      const W = canvas.width, H = canvas.height;
-      
-      // 1. Draw Base Background Gradient
+    // ── Accent line ──
+    function accentLine(y, alpha) {
+      const g = ctx.createLinearGradient(0, y, canvas.width, y);
+      g.addColorStop(0,   `rgba(201,150,59,0)`);
+      g.addColorStop(0.2, `rgba(201,150,59,${alpha})`);
+      g.addColorStop(0.8, `rgba(201,150,59,${alpha})`);
+      g.addColorStop(1,   `rgba(201,150,59,0)`);
+      ctx.save(); ctx.strokeStyle = g; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      ctx.restore();
+    }
+
+    // ── Main draw ──
+    async function draw() {
+      const W = 1080, H = 1920;
       ctx.clearRect(0, 0, W, H);
+
+      // Background
       const bg = ctx.createLinearGradient(0, 0, W, H);
-      bg.addColorStop(0, "#0a0a0f"); bg.addColorStop(0.4, "#0f0e1a"); bg.addColorStop(1, "#050508");
+      bg.addColorStop(0, '#08080f'); bg.addColorStop(0.5, '#0d0c1a'); bg.addColorStop(1, '#050508');
       ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-      // 2. Draw Uploaded Photo Layer
-      if (uploadedPhotoUrl) {
+      // Subtle top-left gold ambient
+      const amb = ctx.createRadialGradient(0, 0, 0, 0, 0, 900);
+      amb.addColorStop(0, 'rgba(201,150,59,0.08)'); amb.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = amb; ctx.fillRect(0, 0, W, H);
+
+      // Photo layer
+      if (photoUrl) {
         try {
-          const photo = await loadImage(uploadedPhotoUrl);
+          const photo = await loadImg(photoUrl);
           const scale = Math.max(W / photo.width, H / photo.height);
           const sw = photo.width * scale, sh = photo.height * scale;
-          const sx = (W - sw) / 2, sy = (H - sh) / 2;
-          ctx.drawImage(photo, sx, sy, sw, sh);
+          ctx.drawImage(photo, (W - sw) / 2, (H - sh) / 2, sw, sh);
 
-          // Rich Dark Vignette Overlay
-          const vignette = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.85);
-          vignette.addColorStop(0, "rgba(5,5,12,0.15)");
-          vignette.addColorStop(0.5, "rgba(5,5,12,0.5)");
-          vignette.addColorStop(1, "rgba(5,5,12,0.92)");
-          ctx.fillStyle = vignette; ctx.fillRect(0, 0, W, H);
-        } catch (e) { console.error("Photo rendering issue", e); }
+          // Vignette
+          const vig = ctx.createRadialGradient(W/2, H*0.45, H*0.1, W/2, H*0.45, H*0.75);
+          vig.addColorStop(0, 'rgba(5,5,12,0.05)');
+          vig.addColorStop(0.55, 'rgba(5,5,12,0.55)');
+          vig.addColorStop(1, 'rgba(5,5,12,0.97)');
+          ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+        } catch(e) { console.warn(e); }
       }
 
-      // Top Header Shade
-      const topGrad = ctx.createLinearGradient(0, 0, 0, 420);
-      topGrad.addColorStop(0, "rgba(5,5,12,0.97)"); topGrad.addColorStop(1, "rgba(5,5,12,0)");
-      ctx.fillStyle = topGrad; ctx.fillRect(0, 0, W, 420);
+      // Top shade
+      const topShade = ctx.createLinearGradient(0, 0, 0, 500);
+      topShade.addColorStop(0, 'rgba(5,5,12,0.96)'); topShade.addColorStop(1, 'rgba(5,5,12,0)');
+      ctx.fillStyle = topShade; ctx.fillRect(0, 0, W, 500);
 
-      // Bottom Footer Shade
-      const bottomGrad = ctx.createLinearGradient(0, H - 600, 0, H);
-      bottomGrad.addColorStop(0, "rgba(5,5,12,0)"); bottomGrad.addColorStop(0.35, "rgba(5,5,12,0.85)"); bottomGrad.addColorStop(1, "rgba(5,5,12,0.99)");
-      ctx.fillStyle = bottomGrad; ctx.fillRect(0, H - 600, W, 600);
+      // Bottom shade
+      const btmShade = ctx.createLinearGradient(0, H - 680, 0, H);
+      btmShade.addColorStop(0, 'rgba(5,5,12,0)'); btmShade.addColorStop(0.4, 'rgba(5,5,12,0.88)'); btmShade.addColorStop(1, 'rgba(5,5,12,0.99)');
+      ctx.fillStyle = btmShade; ctx.fillRect(0, H - 680, W, 680);
 
-      // Accent Line Helper
-      const drawAccentLine = (y, alpha = 1) => {
-        const lg = ctx.createLinearGradient(0, y, W, y);
-        lg.addColorStop(0, `rgba(245,200,66,0)`); lg.addColorStop(0.2, `rgba(245,200,66,${alpha})`);
-        lg.addColorStop(0.8, `rgba(245,200,66,${alpha})`); lg.addColorStop(1, `rgba(245,200,66,0)`);
-        ctx.strokeStyle = lg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      };
-
-      // 3. Top Branding Text
+      // ── TOP BRANDING ──
       ctx.save();
-      ctx.font = "bold 38px Arial"; ctx.fillStyle = "#f5c842"; ctx.textAlign = "center";
-      ctx.fillText("DRIVING ACADEMY", W / 2, 90);
-      ctx.font = "26px Georgia"; ctx.fillStyle = "rgba(255,255,255,0.55)";
-      ctx.fillText("Excellence Behind the Wheel", W / 2, 138);
+      ctx.textAlign = 'center';
+      ctx.font = '500 46px "Georgia", serif'; ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.letterSpacing = '8px';
+      ctx.fillText('DRIVING ACADEMY', W / 2, 100);
+      ctx.font = 'italic 30px "Georgia", serif'; ctx.fillStyle = 'rgba(255,255,255,0.38)';
+      ctx.fillText('Excellence Behind the Wheel', W / 2, 152);
       ctx.restore();
-      drawAccentLine(168, 0.6);
+      accentLine(182, 0.45);
 
-      // 4. Gold "PASSED" Metallic Badge Layout
-      const badgeY = 220, badgeW = 680, badgeH = 140, badgeX = (W - badgeW) / 2;
-      const badgeBg = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
-      badgeBg.addColorStop(0, "rgba(245,200,66,0.15)"); badgeBg.addColorStop(0.5, "rgba(245,200,66,0.22)"); badgeBg.addColorStop(1, "rgba(245,200,66,0.08)");
-      ctx.fillStyle = badgeBg; roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 20); ctx.fill();
-      ctx.strokeStyle = "rgba(245,200,66,0.7)"; ctx.lineWidth = 2.5; roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 20); ctx.stroke();
-
+      // ── PASSED BADGE ──
+      const bY = 220, bW = 700, bH = 148, bX = (W - bW) / 2;
       ctx.save();
-      ctx.font = "bold 92px Arial"; ctx.fillStyle = "#f5c842"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.shadowColor = "rgba(245,200,66,0.5)"; ctx.shadowBlur = 30;
-      ctx.fillText("✓ PASSED", W / 2, badgeY + badgeH / 2);
+      const bGrad = ctx.createLinearGradient(bX, bY, bX + bW, bY + bH);
+      bGrad.addColorStop(0, 'rgba(201,150,59,0.18)'); bGrad.addColorStop(0.5, 'rgba(232,192,120,0.24)'); bGrad.addColorStop(1, 'rgba(201,150,59,0.10)');
+      ctx.fillStyle = bGrad; rr(bX, bY, bW, bH, 22); ctx.fill();
+      const bBorder = ctx.createLinearGradient(bX, bY, bX + bW, bY);
+      bBorder.addColorStop(0, 'rgba(201,150,59,0.3)'); bBorder.addColorStop(0.5, 'rgba(232,192,120,0.85)'); bBorder.addColorStop(1, 'rgba(201,150,59,0.3)');
+      ctx.strokeStyle = bBorder; ctx.lineWidth = 2.5; rr(bX, bY, bW, bH, 22); ctx.stroke();
+      ctx.font = 'bold 96px Arial'; ctx.fillStyle = '#e8c078';
+      ctx.shadowColor = 'rgba(232,192,120,0.6)'; ctx.shadowBlur = 40;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('✓  PASSED', W / 2, bY + bH / 2);
       ctx.restore();
 
-      // 5. Dynamic Student Name
+      // ── STUDENT NAME ──
+      const nameText = (nameEl.value || 'YOUR NAME').toUpperCase();
+      ctx.save();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 60;
+      let fs = 138;
+      ctx.font = `700 ${fs}px Arial`;
+      while (ctx.measureText(nameText).width > W - 130 && fs > 64) { fs -= 6; ctx.font = `700 ${fs}px Arial`; }
       const nameY = 440;
-      ctx.save();
-      ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "top";
-      ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 40;
-      let fontSize = 130;
-      ctx.font = `bold ${fontSize}px Arial`;
-      const nameText = nameInput.value.toUpperCase() || "YOUR NAME";
-      while (ctx.measureText(nameText).width > W - 120 && fontSize > 60) {
-        fontSize -= 5; ctx.font = `bold ${fontSize}px Arial`;
-      }
       ctx.fillText(nameText, W / 2, nameY);
       ctx.restore();
 
-      // 6. Subheading Message
-      const msgY = name
+      // ── PASS MESSAGE ──
+      const msgY = nameY + fs + 36;
+      ctx.save();
+      ctx.font = 'bold 60px Arial'; ctx.fillStyle = '#e8c078'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.shadowColor = 'rgba(201,150,59,0.5)'; ctx.shadowBlur = 25;
+      ctx.fillText(msgEl.value, W / 2, msgY);
+      ctx.restore();
+      accentLine(msgY + 96, 0.35);
+
+      // ── CONGRATS TEXT ──
+      ctx.save();
+      ctx.font = 'italic 44px Georgia'; ctx.fillStyle = 'rgba(255,255,255,0.62)'; ctx.textAlign = 'center';
+      ctx.fillText('Congratulations on passing your practical test!', W / 2, H - 590);
+      ctx.restore();
+
+      // ── QR CODE ──
+      const qrS = 280, qrX = W / 2 - qrS / 2, qrY = H - 520;
+      const rawLink = linkEl.value || 'https://google.com';
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrS}x${qrS}&data=${encodeURIComponent(rawLink)}&bgcolor=0a0a14&color=e8c078&margin=10`;
+      try {
+        const qr = await loadImg(qrUrl);
+        ctx.save();
+        ctx.fillStyle = '#0a0a14'; ctx.shadowColor = 'rgba(201,150,59,0.3)'; ctx.shadowBlur = 32;
+        rr(qrX - 18, qrY - 18, qrS + 36, qrS + 36, 18); ctx.fill();
+        ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(201,150,59,0.6)'; ctx.lineWidth = 2;
+        rr(qrX - 18, qrY - 18, qrS + 36, qrS + 36, 18); ctx.stroke();
+        ctx.restore();
+        ctx.drawImage(qr, qrX, qrY, qrS, qrS);
+      } catch(e) {
+        ctx.fillStyle = 'rgba(201,150,59,0.15)'; rr(qrX - 18, qrY - 18, qrS + 36, qrS + 36, 18); ctx.fill();
+      }
+
+      ctx.save();
+      ctx.font = '600 28px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center';
+      ctx.fillText('SCAN TO BOOK YOUR LESSONS', W / 2, qrY + qrS + 58);
+      ctx.restore();
+
+      // ── FOOTER ──
+      accentLine(H - 130, 0.25);
+      ctx.save();
+      ctx.font = '500 28px Arial'; ctx.fillStyle = 'rgba(201,150,59,0.7)'; ctx.textAlign = 'center';
+      ctx.fillText('POWERED BY DRIVING SCHOOL PLATFORM', W / 2, H - 90);
+      ctx.restore();
+
+      // Update live preview
+      preview.src = canvas.toDataURL('image/png', 0.92);
+    }
+
+    // ── Debounced redraw ──
+    function schedDraw() {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(draw, 80);
+    }
+
+    // ── Input listeners ──
+    [nameEl, msgEl, linkEl].forEach(el => el.addEventListener('input', schedDraw));
+
+    // ── File upload — works on iOS Safari, Android Chrome, desktop ──
+    function processFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        photoUrl = ev.target.result;
+
+        // Show thumb
+        thumb.src = photoUrl;
+        thumb.classList.add('visible');
+        defView.style.display = 'none';
+        chgView.classList.add('visible');
+
+        schedDraw();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    fileEl.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) processFile(e.target.files[0]);
+    });
+
+    // Drag-and-drop (desktop)
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) { fileEl.files = e.dataTransfer.files; processFile(file); }
+    });
+
+    // Paste from clipboard (desktop)
+    document.addEventListener('paste', (e) => {
+      const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+      if (item) processFile(item.getAsFile());
+    });
+
+    // ── Download ──
+    dlBtn.addEventListener('click', async () => {
+      dlBtn.classList.add('loading');
+      dlBtn.textContent = 'Generating…';
+      await draw();
+      await new Promise(r => setTimeout(r, 300));
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `passcard-${(nameEl.value || 'student').toLowerCase().replace(/\s+/g, '-')}.png`;
+      a.click();
+      dlBtn.classList.remove('loading');
+      dlBtn.classList.add('success');
+      dlBtn.innerHTML = '✓ Downloaded!';
+      setTimeout(() => {
+        dlBtn.classList.remove('success');
+        dlBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Story Image';
+      }, 2500);
+    });
+
+    // Initial render
+    draw();
+  </script>
+</body>
+</html>
