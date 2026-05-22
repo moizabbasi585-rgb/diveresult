@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pass Card Story Generator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital@1&display=swap');
+
+    :root {
+      --gold: #f5c842;
+      --gold-dim: rgba(245,200,66,0.15);
+      --gold-border: rgba(245,200,66,0.25);
+      --surface: #0e0e14;
+      --surface-2: #13131c;
+      --surface-3: #1a1a27;
+      --text: #e8e8f0;
+      --text-muted: rgba(232,232,240,0.45);
+      --border: rgba(255,255,255,0.07);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--surface); font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+    .page-wrap {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 60% 40% at 10% 10%, rgba(245,200,66,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 90% 80%, rgba(100,80,200,0.04) 0%, transparent 60%),
+        #0a0a0f;
+    }
+
+    .header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(14,14,20,0.8);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-group { display: flex; align-items: center; gap: 12px; }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), #e8a020);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #0a0a0f;
+    }
+
+    .logo-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+    .logo-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .badge-uk {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+    }
+
+    .badge-uk svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; padding: 1.5rem 1rem 3rem; }
+    }
+
+    .panel { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+    .panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .panel-title { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); }
+    .panel-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px var(--gold); }
+    .panel-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .field-label svg { color: var(--gold); width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+    
+    .field-input {
+      background: var(--surface-3); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;
+      color: var(--text); font-size: 0.95rem; font-family: 'DM Sans', sans-serif; outline: none; width: 100%; transition: all 0.2s;
+    }
+    .field-input:focus { border-color: rgba(245,200,66,0.5); box-shadow: 0 0 0 3px rgba(245,200,66,0.08); }
+
+    .select-wrap { position: relative; }
+    .select-wrap svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted); width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .select-wrap select { cursor: pointer; padding-right: 40px; appearance: none; }
+
+    .upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 2rem 1.5rem; text-align: center; cursor: pointer; transition: all 0.25s; background: var(--surface-3); position: relative; }
+    .upload-zone:hover { border-color: rgba(245,200,66,0.45); background: rgba(245,200,66,0.04); }
+    .upload-icon-wrap { width: 52px; height: 52px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 12px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--gold); }
+    .upload-icon-wrap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .upload-title { font-size: 0.9rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .upload-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .upload-success { display: none; align-items: center; justify-content: center; gap: 8px; color: #4ade80; font-size: 0.85rem; font-weight: 500; margin-top: 8px; }
+    .upload-success svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; }
+
+    .btn-download {
+      width: 100%; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, #f5c842, #e8a020); color: #0a0a0f;
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.25s;
+    }
+    .btn-download svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .btn-download:hover { transform: translateY(-1px); box-shadow: 0 12px 40px rgba(245,200,66,0.35); }
+    .btn-success { background: linear-gradient(135deg, #4ade80, #22c55e) !important; color: white !important; }
+
+    .preview-panel { background: var(--surface-2); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; position: sticky; top: 90px; }
+    .preview-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .preview-header svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; color: var(--text-muted); }
+    .preview-body { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+
+    .story-frame {
+      width: 100%; max-width: 340px; aspect-ratio: 9/16; border-radius: 20px; overflow: hidden; border: 1px solid var(--border);
+      position: relative; background: #0a0a0f; box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(245,200,66,0.06);
+    }
+    .story-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .preview-meta { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.06em; }
+    .meta-divider { width: 1px; height: 12px; background: var(--border); }
+    
+    .tip-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 10px; font-size: 0.78rem; color: rgba(245,200,66,0.85); line-height: 1.5; width: 100%; max-width: 340px; }
+    .tip-row svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; margin-top: 1px; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); overflow: hidden; border-radius: 0 0 20px 20px; }
+    .stat-cell { background: var(--surface-2); padding: 1rem; text-align: center; }
+    .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--gold); letter-spacing: 0.04em; line-height: 1; }
+    .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-top: 2px; }
+    .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0.25rem 0; }
+  </style>
+</head>
+<body>
+
+  <canvas id="mainCanvas" width="1080" height="1920" style="display: none;"></canvas>
+
+  <div class="page-wrap">
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo-group">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1l3-3h8l3 3h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          </div>
+          <div>
+            <div class="logo-text">PASS CARD</div>
+            <div class="logo-sub">Story Generator</div>
+          </div>
+        </div>
+        <div class="badge-uk">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          UK Driving Schools
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-dot"></div>
+            <span class="panel-title">Card Details</span>
+          </div>
+          <div class="panel-body">
+            
+            <div class="field">
+              <label class="field-label">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Student Name
+              </label>
+              <input class="field-input" type="text" id="studentName" value="Jamie" maxlength="30">
+            </div>
+
+            <div class="field">
+              <label class="field-label">
+                <svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3m-4.22-7.78-2.12 2.12M7.1 16.9l-2.12 2.12m12.02 0-2.12-2.12M7.1 7.1 4.98 4.98"/></svg>
+                Passing Message
+              </label>
+              <div class="select-wrap">
+                <select class="field-input" id="passingMessage">
+                  <option value="Passed First Time!">Passed First Time!</option>
+                  <option value="Zero Faults Pass!">Zero Faults Pass!</option>
+                  <option value="Passed Today!">Passed Today!</option>
+                  <option value="First Attempt Pass!">First Attempt Pass!</option>
+                  <option value="Clean Sheet Pass!">Clean Sheet Pass!</option>
+                </select>
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">
+                <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                QR Code Link
+              </label>
+              <input class="field-input" type="url" id="targetLink" value="https://google.com">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="field">
+              <label class="field-label">
+                <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                Student Photo
+              </label>
+              <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                <div class="upload-icon-wrap" id="uploadIcon">
+                  <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                </div>
+                <div class="upload-title" id="uploadTitle">Click to upload photo</div>
+                <div class="upload-sub" id="uploadSub">JPG, PNG, WEBP — student with certificate</div>
+                <div class="upload-success" id="uploadSuccess">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Looking great!
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <button class="btn-download" id="downloadBtn">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Instagram Story
+        </button>
+
+        <div class="panel">
+          <div class="stats-row" style="border-radius: 20px; border: none;">
+            <div class="stat-cell"><div class="stat-val">1080</div><div class="stat-label">px Wide</div></div>
+            <div class="stat-cell"><div class="stat-val">1920</div><div class="stat-label">px Tall</div></div>
+            <div class="stat-cell"><div class="stat-val">9:16</div><div class="stat-label">Ratio</div></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="preview-panel">
+        <div class="preview-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="panel-dot"></div>
+            <span class="panel-title">Live Preview</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span style="font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.06em;">Real-time</span>
+          </div>
+        </div>
+
+        <div class="preview-body">
+          <div class="story-frame">
+            <img id="previewImg" class="story-img" alt="Live Generation View">
+          </div>
+
+          <div class="preview-meta">
+            <span>Instagram Story</span>
+            <div class="meta-divider"></div>
+            <span>1080 × 1920 PNG</span>
+            <div class="meta-divider"></div>
+            <span>High Res</span>
+          </div>
+
+          <div class="tip-row">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span><strong>Pro Tip:</strong> Send this graphic straight to your student's WhatsApp right after they pass. They will instantly post it to their stories! 🚗</span>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-cell"><div class="stat-val">∞</div><div class="stat-label">Downloads</div></div>
+          <div class="stat-cell"><div class="stat-val">£0</div><div class="stat-label">Cost</div></div>
+          <div class="stat-cell"><div class="stat-val">100%</div><div class="stat-label">Standalone</div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const previewImg = document.getElementById('previewImg');
+    
+    // Form Elements
+    const nameInput = document.getElementById('studentName');
+    const msgSelect = document.getElementById('passingMessage');
+    const linkInput = document.getElementById('targetLink');
+    const fileInput = document.getElementById('fileInput');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let uploadedPhotoUrl = null;
+
+    // Helper functions
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath(); ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+    }
+
+    // Engine Core Drawing Logic
+    async function updateCanvas() {
+      const W = canvas.width, H = canvas.height;
+      
+      // 1. Draw Base Background Gradient
+      ctx.clearRect(0, 0, W, H);
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, "#0a0a0f"); bg.addColorStop(0.4, "#0f0e1a"); bg.addColorStop(1, "#050508");
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+      // 2. Draw Uploaded Photo Layer
+      if (uploadedPhotoUrl) {
+        try {
+          const photo = await loadImage(uploadedPhotoUrl);
+          const scale = Math.max(W / photo.width, H / photo.height);
+          const sw = photo.width * scale, sh = photo.height * scale;
+          const sx = (W - sw) / 2, sy = (H - sh) / 2;
+          ctx.drawImage(photo, sx, sy, sw, sh);
+
+          // Rich Dark Vignette Overlay
+          const vignette = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.85);
+          vignette.addColorStop(0, "rgba(5,5,12,0.15)");
+          vignette.addColorStop(0.5, "rgba(5,5,12,0.5)");
+          vignette.addColorStop(1, "rgba(5,5,12,0.92)");
+          ctx.fillStyle = vignette; ctx.fillRect(0, 0, W, H);
+        } catch (e) { console.error("Photo rendering issue", e); }
+      }
+
+      // Top Header Shade
+      const topGrad = ctx.createLinearGradient(0, 0, 0, 420);
+      topGrad.addColorStop(0, "rgba(5,5,12,0.97)"); topGrad.addColorStop(1, "rgba(5,5,12,0)");
+      ctx.fillStyle = topGrad; ctx.fillRect(0, 0, W, 420);
+
+      // Bottom Footer Shade
+      const bottomGrad = ctx.createLinearGradient(0, H - 600, 0, H);
+      bottomGrad.addColorStop(0, "rgba(5,5,12,0)"); bottomGrad.addColorStop(0.35, "rgba(5,5,12,0.85)"); bottomGrad.addColorStop(1, "rgba(5,5,12,0.99)");
+      ctx.fillStyle = bottomGrad; ctx.fillRect(0, H - 600, W, 600);
+
+      // Accent Line Helper
+      const drawAccentLine = (y, alpha = 1) => {
+        const lg = ctx.createLinearGradient(0, y, W, y);
+        lg.addColorStop(0, `rgba(245,200,66,0)`); lg.addColorStop(0.2, `rgba(245,200,66,${alpha})`);
+        lg.addColorStop(0.8, `rgba(245,200,66,${alpha})`); lg.addColorStop(1, `rgba(245,200,66,0)`);
+        ctx.strokeStyle = lg; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      };
+
+      // 3. Top Branding Text
+      ctx.save();
+      ctx.font = "bold 38px Arial"; ctx.fillStyle = "#f5c842"; ctx.textAlign = "center";
+      ctx.fillText("DRIVING ACADEMY", W / 2, 90);
+      ctx.font = "26px Georgia"; ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.fillText("Excellence Behind the Wheel", W / 2, 138);
+      ctx.restore();
+      drawAccentLine(168, 0.6);
+
+      // 4. Gold "PASSED" Metallic Badge Layout
+      const badgeY = 220, badgeW = 680, badgeH = 140, badgeX = (W - badgeW) / 2;
+      const badgeBg = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
+      badgeBg.addColorStop(0, "rgba(245,200,66,0.15)"); badgeBg.addColorStop(0.5, "rgba(245,200,66,0.22)"); badgeBg.addColorStop(1, "rgba(245,200,66,0.08)");
+      ctx.fillStyle = badgeBg; roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 20); ctx.fill();
+      ctx.strokeStyle = "rgba(245,200,66,0.7)"; ctx.lineWidth = 2.5; roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 20); ctx.stroke();
+
+      ctx.save();
+      ctx.font = "bold 92px Arial"; ctx.fillStyle = "#f5c842"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.shadowColor = "rgba(245,200,66,0.5)"; ctx.shadowBlur = 30;
+      ctx.fillText("✓ PASSED", W / 2, badgeY + badgeH / 2);
+      ctx.restore();
+
+      // 5. Dynamic Student Name
+      const nameY = 440;
+      ctx.save();
+      ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+      ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 40;
+      let fontSize = 130;
+      ctx.font = `bold ${fontSize}px Arial`;
+      const nameText = nameInput.value.toUpperCase() || "YOUR NAME";
+      while (ctx.measureText(nameText).width > W - 120 && fontSize > 60) {
+        fontSize -= 5; ctx.font = `bold ${fontSize}px Arial`;
+      }
+      ctx.fillText(nameText, W / 2, nameY);
+      ctx.restore();
+
+      // 6. Subheading Message
+      const msgY = name
